@@ -1,0 +1,15 @@
+docker network create --driver bridge postgres-network
+
+docker run -p 5432:5432 --name postgres_9_6_5  --network postgres-network -v pgdata:/var/lib/postgresql/data -e POSTGRES_PASSWORD=password postgres:9.6.5 
+docker exec -it postgres_9_6_5 psql -U postgres
+docker run -it --rm --network postgres-network postgres:9.6.5 psql -h postgres_9_6_5 -U postgres
+docker run -it --rm --network postgres-network postgres:9.6.5 /bin/bash
+createuser testuser -P --createdb -h postgres_9_6_5 -U postgres
+
+docker run --name phppgadmin --network postgres-network -ti -d -p 8080:80 -e DB_HOST=postgres_9_6_5 keepitcool/phppgadmin
+docker pull dpage/pgadmin4
+docker run --name pgadmin -p 80:80 --network postgres-network -e "PGADMIN_DEFAULT_EMAIL=adolnik@a-mtr.com" -e "PGADMIN_DEFAULT_PASSWORD=SuperSecret" -d dpage/pgadmin4
+
+docker run -d -p 8888:8080 --name webspoon --network postgres-network hiromuhota/webspoon
+
+docker stop postgres_9_6_5 && docker rm postgres_9_6_5
